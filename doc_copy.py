@@ -17,7 +17,7 @@ pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tessera
 
 def classify():
     image = Image.open(
-        "./Data Base/PAN Card/PAN-Card.tiff")
+        "./Data Base/PAN Card/pan12.jpg")
     image = image.convert("RGB")
 
     ocr_df = pytesseract.image_to_data(image, output_type='data.frame')
@@ -38,10 +38,9 @@ def classify():
 
     dataset_path = "./Data Base"
     labels = [label for label in os.listdir(dataset_path)]
+    # labels.flags.allows_duplicate_labels = False
     id2label = {v: k for v, k in enumerate(labels)}
     label2id = {k: v for v, k in enumerate(labels)}
-
-    print(label2id)
 
     images = []
     labels = []
@@ -49,7 +48,6 @@ def classify():
     for label_folder, _, file_name in os.walk(dataset_path):
         if label_folder != dataset_path:
             label = label_folder[12:]
-            print(label)
             for _, _, image_names in os.walk(label_folder):
                 relative_image_names = []
                 for image_file in image_names:
@@ -57,6 +55,7 @@ def classify():
                         dataset_path + "/" + label + "/"+image_file)
                 images.extend(relative_image_names)
                 labels.extend([label] * len(relative_image_names))
+                labels1 = list(dict.fromkeys(labels))
 
     data = pd.DataFrame.from_dict({"image_path:": images, "label": labels})
     dataset = Dataset.from_pandas(data)
@@ -67,7 +66,7 @@ def classify():
         'attention_mask': Sequence(Value(dtype='int64')),
         'token_type_ids': Sequence(Value(dtype='int64')),
         'bbox': Array2D(dtype="int64", shape=(512, 4)),
-        'labels': ClassLabel(num_classes=len(labels), names=labels),
+        'labels': ClassLabel(num_classes=len(labels1), names=labels1),
     })
 
     def preprocess_data(datasets):
@@ -100,7 +99,7 @@ def classify():
     optimizer = AdamW(model.parameters(), lr=5e-5)
 
     global_step = 0
-    num_train_epochs = 6
+    num_train_epochs = 10
     # total number of training steps
     t_total = len(dataloader) * num_train_epochs
 
@@ -132,10 +131,10 @@ def classify():
         print("Training accuracy:", accuracy.item())
 
     poppler_path = r"E:\poppler-23.01.0\Library\bin"
-    pdf_path = r"E:\Document_Classification\testdocument.pdf"
+    pdf_path = r"G:\document_classifier_and_extract\testdocument.pdf"
     pages = convert_from_path(pdf_path=pdf_path, poppler_path=poppler_path)
-    save_folder = r"E:\Document_Classification"
-    save_folder2 = r"E:\Document_Classification\Images"
+    save_folder = r"G:\document_classifier_and_extract"
+    save_folder2 = r"G:\document_classifier_and_extract\Images"
     c = 1
 
     for page in pages:
@@ -155,6 +154,6 @@ def classify():
         print(f"Page {c} Classification:")
         img_name_class = id2label[predicted_class_idx]
         print(img_name_class)
-        img_name2 = img_name_class + ".png"
+        img_name2 = img_name_class + f"{c}" + ".png"
         page.save(os.path.join(save_folder2, img_name2), "PNG")
         c += 1
