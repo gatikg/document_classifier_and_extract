@@ -17,7 +17,7 @@ pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tessera
 
 def classify():
     image = Image.open(
-        "./Data Base/PAN Card/pan12.jpg")
+        "./Data Base/PAN Card/PAN-Card.tiff")
     image = image.convert("RGB")
 
     ocr_df = pytesseract.image_to_data(image, output_type='data.frame')

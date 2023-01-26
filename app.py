@@ -8,7 +8,7 @@ import os
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "supersecretkey"
-app.config["UPLOAD_FOLDER"] = r"E:\Document_Classification"
+app.config["UPLOAD_FOLDER"] = r"G:\document_classifier_and_extract"
 
 
 class UploadFileForm(FlaskForm):
